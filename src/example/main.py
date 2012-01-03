@@ -22,10 +22,16 @@ from kivy.graphics import Color, Ellipse, Line, Fbo
 xDistance = Window.width
 yDistance = Window.height
 
+def static_var(varname, value):
+    def decorate(func):
+        setattr(func, varname, value)
+        return func
+    return decorate
+
 def touchingCircle(bodies, touch):
     point = Vector2(touch.x, touch.y)
     
-    for circle in bodies[4:]:
+    for circle in bodies[5:]:
         rad = circle.m_radius
         pos = circle.m_position
         dist = point.sub(pos).length()
@@ -33,7 +39,7 @@ def touchingCircle(bodies, touch):
             return circle
     return None
 
-    
+
 class BounceBallWidget(Widget):
     
     def __init__(self):
@@ -45,20 +51,21 @@ class BounceBallWidget(Widget):
         self.bodies.append( Plane( Vector2(0, -1), yDistance ) )
         self.bodies.append( Plane( Vector2(1, 0), 0 ) )
         self.bodies.append( Plane( Vector2(0, 1), 0 ) )
+        Window.bind(on_motion=self.on_motion)
         
-#        for ii in range(0, 4):
-#            mass = 20
-#            if ii == 0:
-#                circle = Circle(mass, Vector2(Window.width / 2.0, Window.height - 20), 0)
-#                circle.setColor(color = (random(), random(), random()))
-#                self.bodies.append(circle)
-#            else:
-#                circle = Circle(mass, Vector2.randomRadius(20), mass)
-#                circle.setColor(color = (random(), random(), random()))
-#                self.bodies.append( circle )
-#                
-#        for jj in range(4, 7):
-#            self.joints.append( DistanceConstraint( self.bodies[jj], self.bodies[jj + 1], 60) )
+        for ii in range(0, 4):
+            mass = 20
+            if ii == 0:
+                circle = Circle(mass, Vector2(Window.width / 2.0, Window.height - 20), 0)
+                circle.setColor(color = (random(), random(), random()))
+                self.bodies.append(circle)
+            else:
+                circle = Circle(mass, Vector2.randomRadius(20), mass)
+                circle.setColor(color = (random(), random(), random()))
+                self.bodies.append( circle )
+                
+        for jj in range(4, 7):
+            self.joints.append( DistanceConstraint( self.bodies[jj], self.bodies[jj + 1], 60) )
                 
         super(BounceBallWidget, self).__init__()
 
@@ -67,7 +74,7 @@ class BounceBallWidget(Widget):
         if touchedCircle:
             touch.ud['circle'] = touchedCircle
             touch.ud['mass'] = touchedCircle.m_mass
-            touch.ud['time'] = time()
+            touch.ud['tail'] = list()
             touchedCircle.m_mass = 0
             touchedCircle.m_velocity = Vector2()
         else:
@@ -81,22 +88,31 @@ class BounceBallWidget(Widget):
         if 'circle' in touch.ud:
             movingCircle = touch.ud['circle']
             movingCircle.m_position = Vector2(touch.x, touch.y)
-            if 'start' not in touch.ud:
-                touch.ud['start'] = Vector2(touch.x, touch.y)
+            touch.ud['tail'].append(movingCircle.m_position)
+            if len(touch.ud['tail']) >= 10:
+                del touch.ud['tail'][:1]
+            print "move:", movingCircle.m_position
 
     def on_touch_up(self, touch):
         if 'circle' in touch.ud:
             touchedCircle = touch.ud['circle']
             touchedCircle.m_mass = touch.ud['mass']
-            velocity =  Vector2(touch.x, touch.y).sub(touch.ud['start'])
-            touchedCircle.m_velocity = velocity.mulScalar(5)
-            print "Throw velocity:", touchedCircle.m_velocity
-    
+            tail = touch.ud['tail']
+            if len(tail):
+                velocity =  Vector2(touch.x, touch.y).sub(tail[0])
+                touchedCircle.m_velocity = velocity.mulScalar(5)
+                del touch.ud['tail']
+                print "Throw velocity:", touchedCircle.m_velocity
+            
+    def on_motion(self, etype, profile, touch):
+#        print "type:", etype, "profile:", profile, "touch:", touch
+        pass
+
     def clearCanvas(self):
         self.canvas.clear()
     
     def clearBalls(self):
-        del self.bodies[4:]
+        del self.bodies[8:]
     
     def main_loop(self, dt):
         dt = min(1.0/60.0, dt)
