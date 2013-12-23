@@ -9,7 +9,7 @@ class RigidBody(object):
     Represents any body in the system.
     '''
     
-    def __init__(self, pos, velocity, mass, elasticity = .45):
+    def __init__(self, pos, velocity, mass, elasticity = .85):
         '''
         Constructor
         '''

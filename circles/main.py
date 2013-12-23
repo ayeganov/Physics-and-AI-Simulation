@@ -11,7 +11,7 @@ from physics.Plane import Plane
 from physics.DistanceConstraint import DistanceConstraint
 
 import kivy
-kivy.require('1.0.6') # replace with your current kivy version !
+kivy.require('1.0.7') # replace with your current kivy version !
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.app import App
@@ -71,7 +71,7 @@ class BounceBallWidget(Widget):
 
     def on_touch_down(self, touch):
         touchedCircle = touchingCircle(self.bodies, touch)
-        if touchedCircle:
+        if touchedCircle is not None:
             touch.ud['circle'] = touchedCircle
             touch.ud['mass'] = touchedCircle.m_mass
             touch.ud['tail'] = list()
@@ -79,7 +79,7 @@ class BounceBallWidget(Widget):
             touchedCircle.m_velocity = Vector2()
         else:
             mass = int(random() * 10) + 10
-            circle = Circle( mass, Vector2(touch.x, touch.y), mass, Vector2(0,-550) )
+            circle = Circle( mass, Vector2(touch.x, touch.y), mass, Vector2(random() * 1000 - 500, random() * 1000 - 500) )
             color = (random(), random(), random())
             circle.setColor( color )
             self.bodies.append(circle)

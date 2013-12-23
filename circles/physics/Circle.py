@@ -56,3 +56,4 @@ class Circle(RigidBody):
     
     def __str__(self):
         return str(self.m_position.m_x) + ", " + str(self.m_position.m_y) + " = " + str(self.m_radius)
+
